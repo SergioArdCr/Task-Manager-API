@@ -4,9 +4,9 @@
 
 ## 📌 Descripción
 
-API REST para gestión de proyectos y tareas construida con FastAPI y SQLAlchemy. Permite crear proyectos, invitar miembros, crear tareas con estados y prioridades, asignarlas a usuarios y filtrarlas. Incluye autenticación JWT con roles, Docker y deploy en Railway.
+API REST para gestión de proyectos y tareas construida con FastAPI y SQLAlchemy. Permite crear proyectos, invitar miembros, crear tareas con estados y prioridades, asignarlas a usuarios y filtrarlas. Incluye autenticación JWT con roles, migraciones con Alembic, CI/CD con GitHub Actions, Docker y deploy en Railway con PostgreSQL.
 
-Proyecto final desarrollado como parte de un plan de aprendizaje de Python enfocado en desarrollo backend.
+Proyecto desarrollado como parte de un plan de aprendizaje de Python enfocado en desarrollo backend.
 
 **URL en producción:** https://task-manager-api-production-36bd.up.railway.app/docs
 
@@ -14,9 +14,11 @@ Proyecto final desarrollado como parte de un plan de aprendizaje de Python enfoc
 
 - `FastAPI` — framework web para construir la API
 - `SQLAlchemy` — ORM para manejo de base de datos
-- `SQLite` — base de datos relacional
+- `PostgreSQL` — base de datos relacional en producción
+- `Alembic` — migraciones versionadas de base de datos
 - `JWT` + `bcrypt` — autenticación con roles y hashing de contraseñas
 - `pytest` — tests automatizados
+- `GitHub Actions` — CI/CD: tests automáticos en cada push
 - `Docker` — contenedorización
 - `Railway` — deploy en producción
 
@@ -39,11 +41,17 @@ app/
     └── auth_service.py
 config/
 └── settings.py
-data/
+migrations/
+├── env.py
+└── versions/
 tests/
+├── conftest.py
 ├── test_auth.py
 ├── test_proyectos.py
 └── test_tareas.py
+.github/
+└── workflows/
+    └── tests.yml
 Dockerfile
 requirements.txt
 ```
@@ -69,7 +77,11 @@ cd Task-Manager-API
 pip install -r requirements.txt
 
 # Configurar variables de entorno
-echo "SECRET_KEY=tu_clave_secreta" > .env
+cp .env.example .env
+# Editar .env con tus valores
+
+# Aplicar migraciones
+alembic upgrade head
 
 # Correr el servidor
 uvicorn app.main:app --reload
@@ -88,6 +100,22 @@ Crea un archivo `.env` en la raíz del proyecto:
 
 ```
 SECRET_KEY=tu_clave_secreta
+DATABASE_URL=postgresql://usuario:contraseña@localhost:5432/task_manager
+```
+
+## 🗄️ Migraciones
+
+Este proyecto usa Alembic para gestionar los cambios en la base de datos:
+
+```bash
+# Aplicar todas las migraciones pendientes
+alembic upgrade head
+
+# Generar una nueva migración al cambiar un modelo
+alembic revision --autogenerate -m "descripcion del cambio"
+
+# Revertir la última migración
+alembic downgrade -1
 ```
 
 ## 🚀 Endpoints
@@ -128,6 +156,12 @@ GET /proyectos/{id}/tareas?estado=in_progress&prioridad=high
 pytest tests/ -v
 ```
 
+Los tests usan SQLite en memoria — no requieren PostgreSQL instalado localmente.
+
+## 🔄 CI/CD
+
+Cada push a `main` dispara automáticamente el workflow de GitHub Actions que corre todos los tests. Si alguno falla, el deploy no procede.
+
 ## 💡 Ejemplo de uso
 
 ```python
@@ -163,7 +197,10 @@ print(tareas.json())
 - Autenticación JWT con roles (`admin` / `member`)
 - Filtros dinámicos con parámetros opcionales en FastAPI
 - Lógica de permisos — solo el owner puede agregar miembros
-- Testing completo de auth, proyectos y tareas con pytest
+- Migraciones versionadas con Alembic
+- PostgreSQL en producción vs SQLite en desarrollo
+- CI/CD con GitHub Actions — tests automáticos en cada push
+- Testing con fixtures de pytest y `dependency_overrides`
 - Contenedorización con Docker y deploy en Railway
 
 ---
@@ -176,9 +213,9 @@ print(tareas.json())
 
 ## 📌 Description
 
-REST API for project and task management built with FastAPI and SQLAlchemy. Allows creating projects, inviting members, creating tasks with states and priorities, assigning them to users, and filtering them. Includes JWT authentication with roles, Docker and Railway deployment.
+REST API for project and task management built with FastAPI and SQLAlchemy. Allows creating projects, inviting members, creating tasks with states and priorities, assigning them to users, and filtering them. Includes JWT authentication with roles, versioned migrations with Alembic, CI/CD with GitHub Actions, Docker and Railway deployment with PostgreSQL.
 
-Built as the final project of a Python learning plan focused on backend development.
+Built as part of a Python learning plan focused on backend development.
 
 **Live URL:** https://task-manager-api-production-36bd.up.railway.app/docs
 
@@ -186,9 +223,11 @@ Built as the final project of a Python learning plan focused on backend developm
 
 - `FastAPI` — web framework for building the API
 - `SQLAlchemy` — ORM for database management
-- `SQLite` — relational database
+- `PostgreSQL` — relational database in production
+- `Alembic` — versioned database migrations
 - `JWT` + `bcrypt` — role-based authentication and password hashing
 - `pytest` — automated tests
+- `GitHub Actions` — CI/CD: automatic tests on every push
 - `Docker` — containerization
 - `Railway` — production deploy
 
@@ -211,11 +250,17 @@ app/
     └── auth_service.py
 config/
 └── settings.py
-data/
+migrations/
+├── env.py
+└── versions/
 tests/
+├── conftest.py
 ├── test_auth.py
 ├── test_proyectos.py
 └── test_tareas.py
+.github/
+└── workflows/
+    └── tests.yml
 Dockerfile
 requirements.txt
 ```
@@ -241,7 +286,11 @@ cd Task-Manager-API
 pip install -r requirements.txt
 
 # Set up environment variables
-echo "SECRET_KEY=your_secret_key" > .env
+cp .env.example .env
+# Edit .env with your values
+
+# Apply migrations
+alembic upgrade head
 
 # Run the server
 uvicorn app.main:app --reload
@@ -260,6 +309,22 @@ Create a `.env` file at the project root:
 
 ```
 SECRET_KEY=your_secret_key
+DATABASE_URL=postgresql://user:password@localhost:5432/task_manager
+```
+
+## 🗄️ Migrations
+
+This project uses Alembic to manage database schema changes:
+
+```bash
+# Apply all pending migrations
+alembic upgrade head
+
+# Generate a new migration after changing a model
+alembic revision --autogenerate -m "description of change"
+
+# Revert the last migration
+alembic downgrade -1
 ```
 
 ## 🚀 Endpoints
@@ -300,6 +365,12 @@ GET /proyectos/{id}/tareas?estado=in_progress&prioridad=high
 pytest tests/ -v
 ```
 
+Tests use an in-memory SQLite database — no local PostgreSQL required.
+
+## 🔄 CI/CD
+
+Every push to `main` automatically triggers a GitHub Actions workflow that runs all tests. If any test fails, the deploy does not proceed.
+
 ## 💡 Usage Example
 
 ```python
@@ -335,5 +406,8 @@ print(tasks.json())
 - JWT authentication with roles (`admin` / `member`)
 - Dynamic filters with optional query parameters in FastAPI
 - Permission logic — only the owner can add members
-- Full test coverage for auth, projects and tasks with pytest
+- Versioned database migrations with Alembic
+- PostgreSQL in production vs SQLite in development
+- CI/CD with GitHub Actions — automatic tests on every push
+- pytest fixtures and `dependency_overrides` for isolated testing
 - Docker containerization and Railway deployment
