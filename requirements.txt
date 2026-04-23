@@ -5,3 +5,10 @@ pydantic==2.13.3
 python-dotenv==1.2.2
 python_jose==3.5.0
 SQLAlchemy==2.0.49
+uvicorn
+pandas
+openpyxl
+httpx
+pytest
+bcrypt==4.0.1
+python-multipart
