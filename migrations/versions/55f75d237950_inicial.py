@@ -24,8 +24,10 @@ def upgrade() -> None:
         sa.Column('username', sa.String(), nullable=True),
         sa.Column('password', sa.String(), nullable=True),
         sa.Column('rol', sa.String(), nullable=True),
-        sa.PrimaryKeyConstraint('id')
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('username')
     )
+    op.create_index('ix_usuarios_username', 'usuarios', ['username'])
     op.create_table('proyectos',
         sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
         sa.Column('nombre', sa.String(), nullable=True),
@@ -35,8 +37,8 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint('id')
     )
     op.create_table('proyecto_miembros',
-        sa.Column('usuario_id', sa.Integer(), nullable=True),
         sa.Column('proyecto_id', sa.Integer(), nullable=True),
+        sa.Column('usuario_id', sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(['proyecto_id'], ['proyectos.id']),
         sa.ForeignKeyConstraint(['usuario_id'], ['usuarios.id'])
     )
@@ -57,4 +59,5 @@ def downgrade() -> None:
     op.drop_table('tareas')
     op.drop_table('proyecto_miembros')
     op.drop_table('proyectos')
+    op.drop_index('ix_usuarios_username', 'usuarios')
     op.drop_table('usuarios')
