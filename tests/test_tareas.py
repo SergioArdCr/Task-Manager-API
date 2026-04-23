@@ -1,9 +1,9 @@
-from fastapi.testclient import TestClient
-from app.main import app
+# from fastapi.testclient import TestClient
+# from app.main import app
 
-client = TestClient(app)
+# client = TestClient(app)
 
-def setup():
+def setup(client):
     client.post("/auth/register", json={"username": "tarea_user", "password": "1234"})
     response = client.post("/auth/login", data={"username": "tarea_user", "password": "1234"})
     token = response.json()["access_token"]
@@ -11,8 +11,8 @@ def setup():
     proyecto = client.post("/proyectos/", json={"nombre": "P", "descripcion": "D"}, headers=headers)
     return token, headers, proyecto.json()["id"]
 
-def test_crear_tarea():
-    token, headers, proyecto_id = setup()
+def test_crear_tarea(client):
+    token, headers, proyecto_id = setup(client)
     response = client.post(f"/proyectos/{proyecto_id}/tareas", json={
         "titulo": "Tarea test",
         "descripcion": "Descripción",
@@ -21,8 +21,8 @@ def test_crear_tarea():
     assert response.status_code == 200
     assert "id" in response.json()
 
-def test_get_tareas():
-    token, headers, proyecto_id = setup()
+def test_get_tareas(client):
+    token, headers, proyecto_id = setup(client)
     client.post(f"/proyectos/{proyecto_id}/tareas", json={
         "titulo": "T1", "descripcion": "D1"
     }, headers=headers)
@@ -30,16 +30,16 @@ def test_get_tareas():
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
-def test_filtro_estado():
-    token, headers, proyecto_id = setup()
+def test_filtro_estado(client):
+    token, headers, proyecto_id = setup(client)
     client.post(f"/proyectos/{proyecto_id}/tareas", json={
         "titulo": "T1", "descripcion": "D1"
     }, headers=headers)
     response = client.get(f"/proyectos/{proyecto_id}/tareas?estado=pending", headers=headers)
     assert response.status_code == 200
 
-def test_actualizar_tarea():
-    token, headers, proyecto_id = setup()
+def test_actualizar_tarea(client):
+    token, headers, proyecto_id = setup(client)
     tarea = client.post(f"/proyectos/{proyecto_id}/tareas", json={
         "titulo": "T1", "descripcion": "D1"
     }, headers=headers)
@@ -49,8 +49,8 @@ def test_actualizar_tarea():
     }, headers=headers)
     assert response.status_code == 200
 
-def test_eliminar_tarea():
-    token, headers, proyecto_id = setup()
+def test_eliminar_tarea(client):
+    token, headers, proyecto_id = setup(client)
     tarea = client.post(f"/proyectos/{proyecto_id}/tareas", json={
         "titulo": "T1", "descripcion": "D1"
     }, headers=headers)
