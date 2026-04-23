@@ -20,5 +20,5 @@ def get_db():
     finally:
         db.close()
 
-from app.models import usuario, proyecto, tarea
-Base.metadata.create_all(bind=engine)
+# from app.models import usuario, proyecto, tarea
+# Base.metadata.create_all(bind=engine)
